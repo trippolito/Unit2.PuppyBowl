@@ -5,7 +5,7 @@ const state = {
   allPuppies: [],
   cards: [],
   singlePuppy: {},
-  allTeams: []
+  newPuppy: {}
 };
 
 const main = document.querySelector('main');
@@ -20,20 +20,6 @@ try {
     renderAllPuppies(state.allPuppies);
   }
 
-  const getPlayerId = async (playerId) => {
-    const response = await fetch(`${baseURL}/players/${playerId}`);
-    const jsonresponse = await response.json();
-    state.singlePuppy = jsonresponse.data.player;
-    renderSinglePuppy(state.singlePuppy);
-  }
-
-  const getAllTeams = async () => {
-    const response = await fetch(`${baseURL}/teams`);
-    const jsonresponse = await response.json();
-    state.allTeams = jsonresponse.data.teams;
-    console.log(state.allTeams);
-    renderAllTeams(state.allTeams);
-  }
 
   const getSinglePuppy = async (id) => {
     const response = await fetch(`${baseURL}/players/${id}`);
@@ -42,9 +28,29 @@ try {
     renderSinglePuppy(state.singlePuppy);
   }
 
+  const addPuppy = async () => {
+    state.newPuppy.name = document.querySelector('#name');
+    state.newPuppy.breed = document.querySelector('#breed');
+
+    const response = await fetch(`${baseURL}/players`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: state.newPuppy.name.value,
+          breed: state.newPuppy.breed.value
+        })
+      }
+    );
+    const result = await response.json();
+    console.log(result);
+  }
+
   const renderCard = (puppy) => {
     return `
-            <div style = "height:350px; width:250px;
+            <div style = "height:500px; width:300px;
                             border:3px solid black;
                             margin:5px;
                             display:flex;
@@ -74,12 +80,25 @@ try {
             style = "height: 500px; 
                     width: 400px"
             alt = "puppy image"/>
-        <button>Back To All Puppies</button>
+        <button id = "back-button">Back To All Puppies</button>
     </div>
-    console.log(playerId);
 `;
   }
 
+  const renderForm = () => {
+    return `
+            <h1>Puppy Bowl Roster</h1>
+            <h3>Add New Puppy</h3>
+            <form type ="input">
+                <label>Name</label>
+                <input type= "text" id = "name"/>
+                <label>Breed</label>
+                <input type = "text" id = "breed"/>
+                <button id = "form-button">Submit</button>
+            </form>
+    `
+
+  }
 
   const renderAllPuppies = (puppies) => {
     for (let i = 0; i < puppies.length; i++) {
@@ -102,8 +121,7 @@ try {
     detailCard.innerHTML = renderDetailCard(puppy);
     main.replaceChildren(detailCard);
 
-
-    const backButton = document.querySelector('button');
+    const backButton = document.querySelector('#back-button');
     backButton.addEventListener('click', () => {
       main.innerHTML = '';
       getAllPuppies();
@@ -111,5 +129,23 @@ try {
 
 
   }
+
+  const renderHeader = () => {
+    const header = document.querySelector('header');
+    header.setAttribute('style', 'height:150px; border: 3px solid black');
+    const form = document.createElement('form');
+    form.innerHTML = renderForm();
+    header.appendChild(form);
+    //const submitButton = document.querySelector('#form-button');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      //console.log();
+      addPuppy();
+    });
+
+  }
+
+  renderHeader();
   getAllPuppies();
+
 } catch (error) { console.error(error); }
